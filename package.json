@@ -32,8 +32,18 @@
     "linux": {
       "icon": "public/assets/icon.png",
       "target": [
-        "deb",
-        "tar.gz"
+        {
+          "target": "AppImage",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "arm64"
+          ]
+        }
       ],
       "category": "Utility",
       "maintainer": "Hajer",

@@ -8,7 +8,9 @@
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "vite build && electron-builder",
     "start": "electron dist/main.js",
-    "build:arm64": "electron-builder --linux --arm64"
+    "build:arm64": "electron-builder --linux --arm64",
+    "build:winarm64": "electron-builder --win --arm64"
+
   },
   "dependencies": {
     "firebase": "^11.3.1",
@@ -48,6 +50,12 @@
       "category": "Utility",
       "maintainer": "Hajer",
       "description": "Driver Alert System"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/assets/icon.png"
     },
     "electronDist": "node_modules/electron/dist"
   }

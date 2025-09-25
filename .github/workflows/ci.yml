@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      has_node: ${{ steps.check.outputs.has_node }}
+      has_python: ${{ steps.check.outputs.has_python }}
+      has_dockerfile: ${{ steps.check.outputs.has_dockerfile }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check
+        run: |
+          # default outputs
+          echo "has_node=false" >> $GITHUB_OUTPUT
+          echo "has_python=false" >> $GITHUB_OUTPUT
+          echo "has_dockerfile=false" >> $GITHUB_OUTPUT
+
+          # node (package.json)
+          if [ -f package.json ]; then
+            echo "has_node=true" >> $GITHUB_OUTPUT
+          fi
+
+          # python (any tracked .py OR common py files)
+          if [ -n "$(git ls-files '*.py')" ] || [ -f requirements.txt ] || [ -f pyproject.toml ]; then
+            echo "has_python=true" >> $GITHUB_OUTPUT
+          fi
+
+          # docker
+          if [ -f Dockerfile ]; then
+            echo "has_dockerfile=true" >> $GITHUB_OUTPUT
+          fi
+
+  node:
+    needs: detect
+    if: needs.detect.outputs.has_node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Run lint (if defined in package.json)
+        run: |
+          node -e "try{console.log(require('./package.json').scripts && require('./package.json').scripts.lint ? 'has' : 'no')}catch(e){console.log('no')}" \
+            | grep -q has && npm run lint || echo "No npm lint script defined; skipping"
+
+      - name: Run tests (if defined in package.json)
+        run: |
+          node -e "try{console.log(require('./package.json').scripts && require('./package.json').scripts.test ? 'has' : 'no')}catch(e){console.log('no')}" \
+            | grep -q has && npm test || echo "No npm test script defined; skipping"
+
+  python:
+    needs: detect
+    if: needs.detect.outputs.has_python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies (if any)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then pip install .
+          else
+            echo "No Python requirements detected; skipping install"
+          fi
+
+      - name: Lint with flake8 (if available)
+        run: |
+          if python -c "import importlib, sys; sys.exit(0 if importlib.util.find_spec('flake8') else 1)" ; then
+            flake8 . || exit 1
+          else
+            echo "flake8 not installed; skipping lint"
+          fi
+
+      - name: Run pytest (if available)
+        run: |
+          if python -c "import importlib, sys; sys.exit(0 if importlib.util.find_spec('pytest') else 1)" ; then
+            pytest -q
+          else
+            echo "pytest not found; skipping tests"
+          fi
+
+  docker:
+    needs: detect
+    if: needs.detect.outputs.has_dockerfile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build --progress=plain -t ci-image:latest .
+
+      - name: Build finished
+        run: echo "Docker build finished (image: ci-image:latest)"

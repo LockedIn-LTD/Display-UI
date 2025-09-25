@@ -53,7 +53,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Run lint (if defined in package.json)
         run: |
@@ -87,8 +91,10 @@ jobs:
 
       - name: Install dependencies (if any)
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt
-          elif [ -f pyproject.toml ]; then pip install .
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            pip install .
           else
             echo "No Python requirements detected; skipping install"
           fi

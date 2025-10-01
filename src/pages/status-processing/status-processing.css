@@ -1,0 +1,71 @@
+.status-wrap {
+  width: 100%;
+  height: 100%;
+  background: var(--card-bg);
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.status-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+}
+.logo { height: 48px; object-fit: contain; }
+
+.status-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px; 
+  height: 100%;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px; 
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 4px solid rgba(61,153,112,.25);
+  border-top-color: var(--brand-500);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.title {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 32px;
+  color: #9D9393;
+}
+
+/* Hint */
+.hint {
+  max-width: 600px;
+  text-align: center;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 26px;
+  color: #000000;
+  margin-top: 12px;
+}
+
+/* Dark mode */
+.theme-scope.dark .status-wrap { background: #000; }
+.theme-scope.dark .title { color: #bfbaba; }
+.theme-scope.dark .hint { color: #e8e8e8; }
+
+
+
+
+

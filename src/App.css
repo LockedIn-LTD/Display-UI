@@ -16,3 +16,17 @@
   overflow: hidden;
   display: grid;
 }
+.toast {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2f2f2f;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.2);
+  z-index: 20;
+}
+

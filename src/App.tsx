@@ -3,9 +3,10 @@ import { ThemeProvider, useTheme } from "./theme/ThemeProvider";
 import LoginPage from "./pages/login/login";
 import DriverSelection from "./pages/driver-selection/driver-selection";
 import StatusProcessing from "./pages/status-processing/status-processing";
+import Alerts from "./pages/alerts/alerts";
 import "./App.css";
 
-type Screen = "login" | "drivers" | "processing"; 
+type Screen = "login" | "drivers" | "processing" | "alerts";
 type Driver = { id: string; fullName: string };
 
 function Stage({
@@ -17,19 +18,24 @@ function Stage({
   screen: Screen;
   go: (s: Screen) => void;
   selectedDriver: Driver | null;
-  setSelectedDriver: (d: Driver) => void;
+  setSelectedDriver: (d: Driver | null) => void;
 }) {
   const { theme } = useTheme();
 
+  const nav = (s: Screen) => {
+    if (s === "login") setSelectedDriver(null);
+    go(s);
+  };
+
   return (
     <div className={`stage theme-scope ${theme === "dark" ? "dark" : ""}`}>
-      {screen === "login" && <LoginPage onSuccess={() => go("drivers")} />}
+      {screen === "login" && <LoginPage onSuccess={() => nav("drivers")} />}
 
       {screen === "drivers" && (
         <DriverSelection
           onSelect={(d) => {
-            setSelectedDriver(d);  
-            go("processing");
+            setSelectedDriver(d);
+            nav("processing");
           }}
         />
       )}
@@ -37,12 +43,11 @@ function Stage({
       {screen === "processing" && (
         <StatusProcessing
           driverName={selectedDriver?.fullName || undefined}
-          onDone={() => {
-            // TODO: move to next stage once sensors are ready
-            // go("next");
-          }}
+          onDone={() => nav("alerts")}
         />
       )}
+
+      {screen === "alerts" && <Alerts go={nav} initialState="normal" simulate={true} />}
     </div>
   );
 }

@@ -1,9 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-type Theme = "light" | "dark";
-type Ctx = { theme: Theme; toggleTheme: () => void; targetIcon: "moon" | "sun" };
-
-const ThemeCtx = createContext<Ctx | null>(null);
+import React, { useEffect, useMemo, useState } from "react";
+// Import Context, Types from the new file
+import { ThemeCtx, type Theme, type Ctx } from "./theme-context";
 
 function getInitialTheme(): Theme {
   const saved = localStorage.getItem("ds-theme");
@@ -11,6 +8,7 @@ function getInitialTheme(): Theme {
   return "light"; // default to light
 }
 
+// ThemeProvider is now the ONLY export (besides types/interfaces)
 export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
@@ -27,10 +25,4 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
   }), [theme]);
 
   return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>;
-};
-
-export const useTheme = () => {
-  const ctx = useContext(ThemeCtx);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
 };

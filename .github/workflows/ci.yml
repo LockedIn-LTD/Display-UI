@@ -61,7 +61,6 @@ jobs:
 
       - name: Run lint (if defined in package.json)
         run: |
-          # Use | grep -q 'has' to cleanly check the output
           node -e "try{console.log(require('./package.json').scripts && require('./package.json').scripts.lint ? 'has' : 'no')}catch(e){console.log('no')}" \
           | grep -q 'has' && npm run lint || echo "No npm lint script defined; skipping"
 
@@ -128,4 +127,5 @@ jobs:
           docker build --progress=plain -t ci-image:latest .
 
       - name: Build finished
-        run: echo "Docker build finished (image: ci-image:latest)"
+        run: |
+          echo "Docker build finished (image: ci-image:latest)"

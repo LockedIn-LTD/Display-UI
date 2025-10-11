@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MoonToggle from "../../components/MoonToggle";
 
 import logoUrl from "../../assets/Drivesence-logo.png";

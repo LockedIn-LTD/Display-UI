@@ -44,13 +44,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -58,16 +56,11 @@ jobs:
           else
             npm install
           fi
-
-      - name: Run lint (if defined in package.json)
-        run: |
-          node -e "try{console.log(require('./package.json').scripts && require('./package.json').scripts.lint ? 'has' : 'no')}catch(e){console.log('no')}" \
-          | grep -q 'has' && npm run lint || echo "No npm lint script defined; skipping"
-
-      - name: Run tests (if defined in package.json)
-        run: |
-          node -e "try{console.log(require('./package.json').scripts && require('./package.json').scripts.test ? 'has' : 'no')}catch(e){console.log('no')}" \
-          | grep -q 'has' && npm test || echo "No npm test script defined; skipping"
+      # This step will run your actual 'tsc -b && vite build' command
+      - name: Run release build check
+        run: npm run build
+      - name: Run lint
+        run: npm run lint
 
   python:
     needs: detect
@@ -75,12 +68,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions:setup-python@v4
         with:
           python-version: '3.11'
-
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -88,7 +79,6 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-
       - name: Install dependencies (if any)
         run: |
           if [ -f requirements.txt ]; then
@@ -98,7 +88,6 @@ jobs:
           else
             echo "No Python requirements detected; skipping install"
           fi
-
       - name: Lint with flake8 (if available)
         run: |
           if python -c "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('flake8') else 1)" ; then
@@ -106,7 +95,6 @@ jobs:
           else
             echo "flake8 not installed; skipping lint"
           fi
-
       - name: Run pytest (if available)
         run: |
           if python -c "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('pytest') else 1)" ; then
@@ -120,12 +108,29 @@ jobs:
     if: needs.detect.outputs.has_dockerfile == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          docker build --progress=plain -t ci-image:latest .
+      # Set up QEMU to allow building ARM64 images on the default AMD64 runner
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all 
 
-      - name: Build finished
-        run: |
-          echo "Docker build finished (image: ci-image:latest)"
+      # Set up Docker Buildx (required for multi-platform builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      # ⭐️ Build the ARM64-specific Docker image
+      - name: Build ARM64 release image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false 
+          load: false 
+          tags: jetson-img:ci-test
+          # CRITICAL: Explicitly target the ARM64 platform for the test
+          platforms: linux/arm64 
+      
+      - name: ARM64 Build Test Successful
+        run: echo "The custom Dockerfile successfully built a release image for the ARM64 architecture."

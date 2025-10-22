@@ -22,22 +22,16 @@ export default function Settings({
   const [brightness, setBrightness] = useState(70);
   const [saving, setSaving] = useState(false);
 
-  // dynamic slider color gradient based on current value
-  const sliderBg = (val: number) =>
-    `linear-gradient(to right, #3d9970 0%, #3d9970 ${val}%, #a7d8c5 ${val}%, #a7d8c5 100%)`;
-
-  // simulate save
   function onSave() {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      go("processing"); // after saving, return to status page
+      go("processing"); 
     }, 500);
   }
 
   return (
     <div className="settings-wrap">
-      {/* Header */}
       <div className="settings-head">
         <button className="icon-btn" onClick={() => go("processing")} title="Back">
           <img src={backPng} alt="Back" />
@@ -66,12 +60,9 @@ export default function Settings({
         </div>
       </div>
 
-      {/* Title */}
       <h1 className="settings-title">Manage Your System Settings</h1>
 
-      {/* Controls */}
       <div className="settings-body">
-        {/* Volume */}
         <div className="row">
           <label className="label">Speaker Volume</label>
           <div className="slider">
@@ -81,14 +72,12 @@ export default function Settings({
               max={100}
               value={volume}
               onChange={(e) => setVolume(e.currentTarget.valueAsNumber)}
-              onInput={(e) => setVolume((e.target as HTMLInputElement).valueAsNumber)}
               aria-label="Speaker volume"
-              style={{ background: sliderBg(volume) }}
+              style={{ ["--progress" as any]: `${volume}%` }}
             />
           </div>
         </div>
 
-        {/* Brightness */}
         <div className="row">
           <label className="label">Screen Brightness</label>
           <div className="slider">
@@ -98,14 +87,12 @@ export default function Settings({
               max={100}
               value={brightness}
               onChange={(e) => setBrightness(e.currentTarget.valueAsNumber)}
-              onInput={(e) => setBrightness((e.target as HTMLInputElement).valueAsNumber)}
               aria-label="Screen brightness"
-              style={{ background: sliderBg(brightness) }}
+              style={{ ["--progress" as any]: `${brightness}%` }}
             />
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="cta-row">
           <button className="pill cta save" onClick={onSave} disabled={saving}>
             {saving ? "Saving…" : "Save"}

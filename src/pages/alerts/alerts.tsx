@@ -110,8 +110,6 @@ export default function Alerts({
         <img className="state-icon" src={ui.icon} alt={state} />
         <div className="alert-title">CAUTION</div>
         <div className="alert-message">{ui.title}</div>
-
-        {/* Call button visible only on critical */}
         {ui.showCTA && (
           <button className="alert-cta" onClick={startEmergencyCall}>
             {callingPhase === "idle" && "CALL EMERGENCY"}

@@ -6,16 +6,9 @@ import "./driver-selection.css";
 
 type Driver = { id: string; fullName: string; avatarUrl?: string };
 
-// Props: call onSelect(driver) when a card is clicked
 type Props = { onSelect?: (driver: Driver) => void };
 
 async function getDrivers(): Promise<Driver[]> {
- 
-  // const res = await fetch("/api/drivers");
-  // if (!res.ok) throw new Error("Failed to load drivers");
-  // return (await res.json()) as Driver[];
-
-  // Mock until API is ready
   return [
     { id: "1", fullName: "David Brown" },
     { id: "2", fullName: "Unknown Driver" },
@@ -23,7 +16,6 @@ async function getDrivers(): Promise<Driver[]> {
     { id: "4", fullName: "Unknown Driver" },
   ];
 }
-// --------------------------------------------------------
 
 export default function DriverSelection({ onSelect }: Props) {
   const [drivers, setDrivers] = useState<Driver[] | null>(null);
@@ -75,8 +67,6 @@ export default function DriverSelection({ onSelect }: Props) {
             <div className="driver-name">{d.fullName}</div>
           </button>
         ))}
-
-        {/* If API returns 0 rows, keep two placeholders visible */}
         {drivers && drivers.length === 0 && (
           <>
             <div className="driver-card disabled" aria-disabled="true">

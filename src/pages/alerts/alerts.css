@@ -1,4 +1,3 @@
-/* Page scaffolding */
 .alerts-wrap {
   width: 100%;
   height: 100%;
@@ -26,8 +25,6 @@
   font-size: 12px;
   opacity: 0.8;
 }
-
-/* Small round icon buttons */
 .icon-btn {
   display: grid;
   place-items: center;
@@ -44,8 +41,6 @@
   height: 22px;
   object-fit: contain;
 }
-
-/* Card layout */
 .alert-card {
   margin: 24px auto;
   width: min(1000px, 92%);
@@ -126,8 +121,6 @@
   padding: 14px 32px;
   border-radius: 32px;
 }
-
-/* Borders per alert state */
 .border-normal {
   border-color: #5ba282;
 }
@@ -137,8 +130,6 @@
 .border-critical {
   border-color: #e06457;
 }
-
-/* Dark mode */
 .theme-scope.dark .alerts-wrap {
   background: #000;
 }

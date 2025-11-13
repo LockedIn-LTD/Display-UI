@@ -76,6 +76,13 @@
   font-size: 18px;    
 }
 
+.login-error {
+  color: #b00020;
+  margin-top: 8px;
+  font-size: 15px;
+  text-align: center;
+}
+
 .pill.cta:disabled { opacity: .7; cursor: default; }
 
 :root.dark .login-wrap { background: #000; }

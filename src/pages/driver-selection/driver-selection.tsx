@@ -3,33 +3,26 @@ import MoonToggle from "../../components/MoonToggle";
 import logoUrl from "../../assets/Drivesence-logo.png";
 import driverIconUrl from "../../assets/Driver-icon.png";
 import "./driver-selection.css";
-
-type Driver = { id: string; fullName: string; avatarUrl?: string };
+import { listDrivers, type Driver } from "../../api/client";
 
 type Props = { onSelect?: (driver: Driver) => void };
-
-async function getDrivers(): Promise<Driver[]> {
-  return [
-    { id: "1", fullName: "David Brown" },
-    { id: "2", fullName: "Unknown Driver" },
-    { id: "3", fullName: "Unknown Driver" },
-    { id: "4", fullName: "Unknown Driver" },
-  ];
-}
 
 export default function DriverSelection({ onSelect }: Props) {
   const [drivers, setDrivers] = useState<Driver[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
       try {
-        const data = await getDrivers();
+        const data = await listDrivers();
         if (!cancelled) setDrivers(data);
-      } catch {
+      } catch (err) {
+        console.error("Failed to load drivers:", err);
         if (!cancelled) setDrivers([]);
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -67,6 +60,18 @@ export default function DriverSelection({ onSelect }: Props) {
             <div className="driver-name">{d.fullName}</div>
           </button>
         ))}
+
+        {/* Loading state */}
+        {drivers === null && (
+          <>
+            <div className="driver-card skeleton" aria-hidden="true" />
+            <div className="driver-card skeleton" aria-hidden="true" />
+            <div className="driver-card skeleton" aria-hidden="true" />
+            <div className="driver-card skeleton" aria-hidden="true" />
+          </>
+        )}
+
+        {/* Empty state */}
         {drivers && drivers.length === 0 && (
           <>
             <div className="driver-card disabled" aria-disabled="true">

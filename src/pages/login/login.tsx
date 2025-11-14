@@ -1,29 +1,39 @@
 import React, { useState } from "react";
 import MoonToggle from "../../components/MoonToggle";
-import logoUrl from "../../assets/Drivesence-logo.png"; 
+import logoUrl from "../../assets/Drivesence-logo.png";
 import "./login.css";
+import { login } from "../../api/client"; 
 
 type LoginForm = { identifier: string; password: string };
-type Props = { onSuccess?: () => void }; 
+type Props = { onSuccess?: () => void };
 
 export default function LoginPage({ onSuccess }: Props) {
   const [form, setForm] = useState<LoginForm>({ identifier: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onChange =
     (key: keyof LoginForm) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm(f => ({ ...f, [key]: e.target.value }));
+      setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
 
-    // --- placeholder: accept any credentials for now ---
-    setTimeout(() => {
+    try {
+      // call backend API
+      const { user } = await login(form.identifier.trim(), form.password);
+      console.log("Logged in user:", user);
+
+      onSuccess?.();
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || "Login failed");
+    } finally {
       setLoading(false);
-      onSuccess?.(); // move to Driver Selection
-    }, 350);
+    }
   }
 
   return (
@@ -42,6 +52,7 @@ export default function LoginPage({ onSuccess }: Props) {
             placeholder="Email or Username"
             value={form.identifier}
             onChange={onChange("identifier")}
+            required
           />
         </label>
 
@@ -51,12 +62,15 @@ export default function LoginPage({ onSuccess }: Props) {
             placeholder="Password"
             value={form.password}
             onChange={onChange("password")}
+            required
           />
         </label>
 
         <button className="pill cta" type="submit" disabled={loading}>
-          {loading ? "…" : "Sign In"}
+          {loading ? "Signing in…" : "Sign In"}
         </button>
+
+        {error && <div className="login-error">{error}</div>}
       </form>
     </div>
   );

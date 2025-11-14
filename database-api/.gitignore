@@ -1,0 +1,16 @@
+.env
+.env.*
+firebase-admin.json
+firebase-debug.log
+*.pem
+*.key
+
+node_modules/
+dist/
+build/
+coverage/
+
+*.log
+.DS_Store
+.vscode/
+.idea/

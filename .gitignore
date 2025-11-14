@@ -7,23 +7,42 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Node
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
+# Editor
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# FRONTEND ENV 
 .env
 .env.*
+src/.env.*
 **/.env
 server/.env
 !.env.example
+src/.env.development
+
+# BACKEND ENV 
+database-api/.env
+database-api/.env.*
+database-api/firebase-admin.json
+database-api/firebase-debug.log
+
+# Backend build
+database-api/node_modules/
+database-api/dist/
+database-api/build/
+database-api/coverage/
+
+

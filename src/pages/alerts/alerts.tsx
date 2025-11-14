@@ -14,6 +14,7 @@ import { listEvents, type Event } from "../../api/client";
 
 export type DriverState = "normal" | "drowsy" | "critical";
 type Screen = "login" | "drivers" | "processing" | "alerts" | "settings";
+type CallingPhase = "idle" | "calling" | "connected" | "error";
 
 interface Props {
   go: (s: Screen) => void;
@@ -22,6 +23,7 @@ interface Props {
   simulate?: boolean;           // optional demo mode
   onLogout?: () => void;
   pollMs?: number;              // polling frequency
+  emergencyContact?: string;
 }
 
 export default function Alerts({
@@ -32,10 +34,69 @@ export default function Alerts({
   onLogout,
   pollMs = 4000,
 }: Props) {
+
+  emergencyContact = "1555550123",
+}: Props) {
   const [state, setState] = useState<DriverState>(initialState);
-  const [callingPhase, setCallingPhase] = useState<"idle" | "calling" | "connected">("idle");
+  const [callingPhase, setCallingPhase] = useState<CallingPhase>("idle");
   const [error, setError] = useState<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
+                            
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const startEmergencyCall = async () => {
+    if (!emergencyContact) {
+      setError("No emergency contact set. Please add one in settings.");
+      setCallingPhase("error");
+      return;
+    }
+
+    setError(null);
+    setCallingPhase("calling");
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    try {
+      const response = await fetch("/api/send-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json"},
+        body: JSON.stringify({ phone : emergencyContact })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to trigger alert");
+      }
+
+      setCallingPhase("connected");
+      timeoutRef.current = setTimeout(() => {
+        setCallingPhase("idle");
+      }, 4500);
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Failed to trigger emergency call";
+
+      console.error("Emergency call error:", err);
+      setError(errorMessage);
+      setCallingPhase("error");
+      
+      // Reset error state after 5 seconds
+      timeoutRef.current = setTimeout(() => {
+        setCallingPhase("idle");
+        setError(null);
+      }, 5000);
+    }
+  };
 
   // --- DEMO cycle if simulate === true (kept for dev/testing) ---
   useEffect(() => {
@@ -139,6 +200,19 @@ export default function Alerts({
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="error-banner" style={{
+          background: "#ff4444",
+          color: "white",
+          padding: "12px",
+          marginBottom: "16px",
+          borderRadius: "4px",
+          textAlign: "center"
+        }}>
+          {error}
+        </div>
+      )}
 
       <div className={`alert-card ${ui.borderClass}`}>
         <img className="state-icon" src={ui.icon} alt={state} />

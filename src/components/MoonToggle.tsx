@@ -1,4 +1,4 @@
-import { useTheme } from "../theme/ThemeProvider";
+import { useTheme } from "../theme/theme-context";
 import "./MoonToggle.css";
 
 const Moon = () => (

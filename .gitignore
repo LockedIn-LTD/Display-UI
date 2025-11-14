@@ -28,6 +28,9 @@ dist-ssr/
 .env
 .env.*
 src/.env.*
+**/.env
+server/.env
+!.env.example
 src/.env.development
 
 # BACKEND ENV 
@@ -41,3 +44,5 @@ database-api/node_modules/
 database-api/dist/
 database-api/build/
 database-api/coverage/
+
+

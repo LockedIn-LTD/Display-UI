@@ -1,5 +1,7 @@
 import twilio from "twilio";
 import dotenv from "dotenv";
+import { MessageInstance } from "twilio/lib/rest/api/v2010/account/message";
+import { CallInstance } from "twilio/lib/rest/api/v2010/account/call";
 
 dotenv.config();
 
@@ -19,7 +21,7 @@ const from = fromNumber;
  * @param to - Recipient's phone number
  * @param message - Message body
  */
-export async function sendSMS(to: string, message: string): Promise<any>{
+export async function sendSMS(to: string, message: string): Promise<MessageInstance>{
     return client.messages.create({ 
         body: message, 
         from: from,
@@ -35,7 +37,7 @@ export async function sendSMS(to: string, message: string): Promise<any>{
 export async function makeCall(
     to: string, 
     url: string ="https://handler.twilio.com/twiml/EHd85424ad567fc170dd538e14f5e3d8d7"
-): Promise<any>{
+): Promise<CallInstance>{
     return client.calls.create({
         from: from,
         to, 

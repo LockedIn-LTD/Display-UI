@@ -28,7 +28,7 @@ export default function Alerts({
   initialState = "normal",
   simulate = true,
   onLogout,
-  emergencyContact = "+15551234567",
+  emergencyContact = "1555550123",
 }: Props) {
   const [state, setState] = useState<DriverState>(initialState);
   const [callingPhase, setCallingPhase] = useState<CallingPhase>("idle");

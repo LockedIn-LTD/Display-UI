@@ -33,9 +33,7 @@ export default function Alerts({
   simulate = false,
   onLogout,
   pollMs = 4000,
-}: Props) {
-
-  emergencyContact = "1555550123",
+  emergencyContact = "+1555550123",
 }: Props) {
   const [state, setState] = useState<DriverState>(initialState);
   const [callingPhase, setCallingPhase] = useState<CallingPhase>("idle");
@@ -136,14 +134,6 @@ export default function Alerts({
       clearInterval(t);
     };
   }, [driverId, simulate, pollMs, initialState]);
-
-  // action button behavior
-  const startEmergencyCall = () => {
-    setState("critical");
-    setCallingPhase("calling");
-    setTimeout(() => setCallingPhase("connected"), 2300);
-    setTimeout(() => setCallingPhase("idle"), 4500);
-  };
 
   // map state -> visuals
   const ui = useMemo(() => {

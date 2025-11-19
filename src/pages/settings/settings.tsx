@@ -8,6 +8,7 @@ import settingsPng from "../../assets/Settings.png";
 import logoutPng from "../../assets/logout.png";
 
 import "./settings.css";
+import { useBrightness } from "../../lib/brightness";
 
 type Screen = "login" | "drivers" | "processing" | "alerts" | "settings";
 
@@ -19,14 +20,14 @@ export default function Settings({
   onLogout: () => void;
 }) {
   const [volume, setVolume] = useState(65);
-  const [brightness, setBrightness] = useState(70);
+  const { brightness, setBrightness } = useBrightness();
   const [saving, setSaving] = useState(false);
 
   function onSave() {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      go("processing"); 
+      go("processing");
     }, 500);
   }
 
@@ -41,7 +42,7 @@ export default function Settings({
           src={logoUrl}
           alt="DriveSense"
           className="logo"
-          onClick={() => go("login")}
+          onClick={() => go("processing")}
           style={{ cursor: "pointer" }}
         />
 

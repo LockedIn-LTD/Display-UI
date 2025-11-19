@@ -76,7 +76,6 @@
   font-size: 38px;
 }
 
-/* Call button + states */
 .call-area {
   display: flex;
   justify-content: center;
@@ -102,7 +101,6 @@
   transform: translateY(1px);
 }
 
-/* Dialing / Connected text */
 .call-status,
 .connected-pill {
   font-family: "Alata", system-ui, sans-serif;

@@ -18,11 +18,11 @@ type CallingPhase = "idle" | "calling" | "connected" | "error";
 
 interface Props {
   go: (s: Screen) => void;
-  driverId?: string;            // <-- NEW: which driver's status to show
-  initialState?: DriverState;   // fallback if no data yet
-  simulate?: boolean;           // optional demo mode
+  driverId?: string;
+  initialState?: DriverState;
+  simulate?: boolean;
   onLogout?: () => void;
-  pollMs?: number;              // polling frequency
+  pollMs?: number;
   emergencyContact?: string;
 }
 
@@ -33,14 +33,14 @@ export default function Alerts({
   simulate = false,
   onLogout,
   pollMs = 4000,
-  emergencyContact = "+1555550123",
+  emergencyContact = "+14384580018",
 }: Props) {
   const [state, setState] = useState<DriverState>(initialState);
   const [callingPhase, setCallingPhase] = useState<CallingPhase>("idle");
   const [error, setError] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
-                            
+
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -65,8 +65,8 @@ export default function Alerts({
     try {
       const response = await fetch("/api/send-alert", {
         method: "POST",
-        headers: { "Content-Type": "application/json"},
-        body: JSON.stringify({ phone : emergencyContact })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: emergencyContact }),
       });
 
       const data = await response.json();
@@ -78,17 +78,14 @@ export default function Alerts({
       timeoutRef.current = setTimeout(() => {
         setCallingPhase("idle");
       }, 4500);
-      
     } catch (err) {
-      const errorMessage = err instanceof Error
-        ? err.message
-        : "Failed to trigger emergency call";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to trigger emergency call";
 
       console.error("Emergency call error:", err);
       setError(errorMessage);
       setCallingPhase("error");
-      
-      // Reset error state after 5 seconds
+
       timeoutRef.current = setTimeout(() => {
         setCallingPhase("idle");
         setError(null);
@@ -96,7 +93,6 @@ export default function Alerts({
     }
   };
 
-  // --- DEMO cycle if simulate === true (kept for dev/testing) ---
   useEffect(() => {
     if (!simulate) return;
     const seq: DriverState[] = ["normal", "drowsy", "critical"];
@@ -108,14 +104,14 @@ export default function Alerts({
     return () => clearInterval(t);
   }, [simulate]);
 
-  // --- Real data: poll the newest event for the driver and map to UI state ---
   useEffect(() => {
     mounted.current = true;
-    if (!driverId || simulate) return; // no polling if simulating
+    if (!driverId || simulate) return;
 
     async function load() {
       try {
         const events = await listEvents({ driverId, limit: 1 });
+        console.log("Events for driver", driverId, events);
         const e = events[0] ?? null;
         const next = eventToState(e, initialState);
         if (mounted.current) {
@@ -123,7 +119,8 @@ export default function Alerts({
           setError(null);
         }
       } catch (err: any) {
-        if (mounted.current) setError(err?.message || "Failed to load status");
+        if (mounted.current)
+          setError(err?.message || "Failed to load status");
       }
     }
 
@@ -135,7 +132,6 @@ export default function Alerts({
     };
   }, [driverId, simulate, pollMs, initialState]);
 
-  // map state -> visuals
   const ui = useMemo(() => {
     const map = {
       normal: {
@@ -167,17 +163,23 @@ export default function Alerts({
           src={logoUrl}
           alt="DriveSense"
           className="logo"
-          onClick={() => go("login")}
+          onClick={() => go("drivers")}
           style={{ cursor: "pointer" }}
         />
 
         <div className="head-right">
-          <span className="help-text">Need Help ? Call Your Emergency Contact Now</span>
+          <span className="help-text">
+            Need Help ? Call Your Emergency Contact Now
+          </span>
           <button className="icon-btn" title="Call" onClick={startEmergencyCall}>
             <img src={phonePng} alt="Call" />
           </button>
 
-          <button className="icon-btn" title="Settings" onClick={() => go("settings")}>
+          <button
+            className="icon-btn"
+            title="Settings"
+            onClick={() => go("settings")}
+          >
             <img src={settingsPng} alt="Settings" />
           </button>
 
@@ -192,14 +194,17 @@ export default function Alerts({
       </div>
 
       {error && (
-        <div className="error-banner" style={{
-          background: "#ff4444",
-          color: "white",
-          padding: "12px",
-          marginBottom: "16px",
-          borderRadius: "4px",
-          textAlign: "center"
-        }}>
+        <div
+          className="error-banner"
+          style={{
+            background: "#ff4444",
+            color: "white",
+            padding: "12px",
+            marginBottom: "16px",
+            borderRadius: "4px",
+            textAlign: "center",
+          }}
+        >
           {error}
         </div>
       )}
@@ -223,19 +228,12 @@ export default function Alerts({
   );
 }
 
-/** Map the latest Event to a simple traffic-light state */
 function eventToState(e: Event | null, fallback: DriverState): DriverState {
   if (!e) return fallback;
 
-  const s = (e.status || "").toLowerCase();
-  const hr = e.heartRate ?? 0;
-  const spo2 = e.bloodOxygenLevel ?? 100;
+  const s = (e.status || "").toLowerCase().trim();
 
-  const isCritical = s.includes("high") || s.includes("critical") || spo2 < 90 || hr > 110;
-  if (isCritical) return "critical";
-
-  const isDrowsy = s.includes("mild") || s.includes("warning") || spo2 < 93 || hr > 95;
-  if (isDrowsy) return "drowsy";
-
-  return "normal";
+  if (s === "severe") return "critical"; 
+  if (s === "mild") return "drowsy";     
+  return fallback; 
 }

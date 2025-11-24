@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useRef, useState } from "react";
 import MoonToggle from "../../components/MoonToggle";
 
 import logoUrl from "../../assets/Drivesence-logo.png";
@@ -6,8 +6,10 @@ import backPng from "../../assets/back.png";
 import phonePng from "../../assets/Phone.png";
 import settingsPng from "../../assets/Settings.png";
 import logoutPng from "../../assets/logout.png";
+import alarmSound from "../../assets/alarmSound.wav";
 
 import "./settings.css";
+import { useSettings } from "../../lib/settings";
 
 type Screen = "login" | "drivers" | "processing" | "alerts" | "settings";
 
@@ -18,15 +20,15 @@ export default function Settings({
   go: (s: Screen) => void;
   onLogout: () => void;
 }) {
-  const [volume, setVolume] = useState(65);
-  const [brightness, setBrightness] = useState(70);
+  const { brightness, setBrightness, volume, setVolume } = useSettings();
   const [saving, setSaving] = useState(false);
+  const previewRef = useRef<HTMLAudioElement | null>(null);
 
   function onSave() {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      go("processing"); 
+      go("processing");
     }, 500);
   }
 
@@ -41,7 +43,7 @@ export default function Settings({
           src={logoUrl}
           alt="DriveSense"
           className="logo"
-          onClick={() => go("login")}
+          onClick={() => go("processing")}
           style={{ cursor: "pointer" }}
         />
 
@@ -71,7 +73,16 @@ export default function Settings({
               min={0}
               max={100}
               value={volume}
-              onChange={(e) => setVolume(e.currentTarget.valueAsNumber)}
+              onChange={(e) => {
+                const v = e.currentTarget.valueAsNumber;
+                setVolume(v);
+                if (previewRef.current) {
+                  const vol = Math.max(0, Math.min(1, v / 100));
+                  previewRef.current.volume = vol;
+                  previewRef.current.currentTime = 0;
+                  previewRef.current.play().catch(() => {});
+                }
+              }}
               aria-label="Speaker volume"
               style={{ ["--progress" as any]: `${volume}%` }}
             />
@@ -103,6 +114,8 @@ export default function Settings({
           </button>
         </div>
       </div>
+
+      <audio ref={previewRef} src={alarmSound} />
     </div>
   );
 }

@@ -8,9 +8,11 @@ import iconCritical from "../../assets/Critical.png";
 import phonePng from "../../assets/Phone.png";
 import settingsPng from "../../assets/Settings.png";
 import logoutPng from "../../assets/logout.png";
+import alarmSound from "../../assets/alarmSound.wav";
 
 import "./alerts.css";
 import { listEvents, type Event } from "../../api/client";
+import { useSettings } from "../../lib/settings";
 
 export type DriverState = "normal" | "drowsy" | "critical";
 type Screen = "login" | "drivers" | "processing" | "alerts" | "settings";
@@ -41,14 +43,19 @@ export default function Alerts({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
 
+  const { volume } = useSettings();
+  const alarmRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (alarmRef.current) alarmRef.current.pause();
     };
   }, []);
 
+  // -------------------------
+  // FIXED CALLING FUNCTION
+  // -------------------------
   const startEmergencyCall = async () => {
     if (!emergencyContact) {
       setError("No emergency contact set. Please add one in settings.");
@@ -58,12 +65,12 @@ export default function Alerts({
 
     setError(null);
     setCallingPhase("calling");
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     try {
-      const response = await fetch("/api/send-alert", {
+      const baseUrl = import.meta.env.VITE_API_URL || "";
+
+      const response = await fetch(`${baseUrl}/api/send-alert`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: emergencyContact }),
@@ -78,6 +85,7 @@ export default function Alerts({
       timeoutRef.current = setTimeout(() => {
         setCallingPhase("idle");
       }, 4500);
+
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to trigger emergency call";
@@ -93,6 +101,7 @@ export default function Alerts({
     }
   };
 
+  // Simulation mode
   useEffect(() => {
     if (!simulate) return;
     const seq: DriverState[] = ["normal", "drowsy", "critical"];
@@ -104,6 +113,7 @@ export default function Alerts({
     return () => clearInterval(t);
   }, [simulate]);
 
+  // Polling driver events
   useEffect(() => {
     mounted.current = true;
     if (!driverId || simulate) return;
@@ -111,7 +121,6 @@ export default function Alerts({
     async function load() {
       try {
         const events = await listEvents({ driverId, limit: 1 });
-        console.log("Events for driver", driverId, events);
         const e = events[0] ?? null;
         const next = eventToState(e, initialState);
         if (mounted.current) {
@@ -119,8 +128,7 @@ export default function Alerts({
           setError(null);
         }
       } catch (err: any) {
-        if (mounted.current)
-          setError(err?.message || "Failed to load status");
+        if (mounted.current) setError(err?.message || "Failed to load status");
       }
     }
 
@@ -131,6 +139,24 @@ export default function Alerts({
       clearInterval(t);
     };
   }, [driverId, simulate, pollMs, initialState]);
+
+  // Alarm sound logic
+  useEffect(() => {
+    if (!alarmRef.current) {
+      alarmRef.current = new Audio(alarmSound);
+      alarmRef.current.loop = true;
+    }
+    const audio = alarmRef.current;
+
+    audio.volume = Math.max(0, Math.min(1, volume / 100));
+
+    if (state === "critical") {
+      audio.play().catch((err) => console.error("Alarm play error:", err));
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  }, [state, volume]);
 
   const ui = useMemo(() => {
     const map = {
@@ -163,7 +189,7 @@ export default function Alerts({
           src={logoUrl}
           alt="DriveSense"
           className="logo"
-          onClick={() => go("drivers")}
+          onClick={() => go("login")}
           style={{ cursor: "pointer" }}
         />
 
@@ -171,15 +197,12 @@ export default function Alerts({
           <span className="help-text">
             Need Help ? Call Your Emergency Contact Now
           </span>
+
           <button className="icon-btn" title="Call" onClick={startEmergencyCall}>
             <img src={phonePng} alt="Call" />
           </button>
 
-          <button
-            className="icon-btn"
-            title="Settings"
-            onClick={() => go("settings")}
-          >
+          <button className="icon-btn" title="Settings" onClick={() => go("settings")}>
             <img src={settingsPng} alt="Settings" />
           </button>
 
@@ -194,17 +217,14 @@ export default function Alerts({
       </div>
 
       {error && (
-        <div
-          className="error-banner"
-          style={{
-            background: "#ff4444",
-            color: "white",
-            padding: "12px",
-            marginBottom: "16px",
-            borderRadius: "4px",
-            textAlign: "center",
-          }}
-        >
+        <div className="error-banner" style={{
+          background: "#ff4444",
+          color: "white",
+          padding: "12px",
+          marginBottom: "16px",
+          borderRadius: "4px",
+          textAlign: "center",
+        }}>
           {error}
         </div>
       )}
@@ -231,9 +251,27 @@ export default function Alerts({
 function eventToState(e: Event | null, fallback: DriverState): DriverState {
   if (!e) return fallback;
 
-  const s = (e.status || "").toLowerCase().trim();
+  const s = (e.status || "").toLowerCase();
+  const hr = e.heartRate ?? 0;
+  const spo2 = e.bloodOxygenLevel ?? 100;
 
-  if (s === "severe") return "critical"; 
-  if (s === "mild") return "drowsy";     
-  return fallback; 
+  const isCritical =
+    s.includes("high") ||
+    s.includes("critical") ||
+    s.includes("severe") ||
+    spo2 < 90 ||
+    hr > 110;
+
+  if (isCritical) return "critical";
+
+  const isDrowsy =
+    s.includes("mild") ||
+    s.includes("warning") ||
+    s.includes("drowsy") ||
+    spo2 < 93 ||
+    hr > 95;
+
+  if (isDrowsy) return "drowsy";
+
+  return "normal";
 }

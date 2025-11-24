@@ -26,6 +26,31 @@ function mapEvent(docId: string, data: FirestoreEvent): EventAPI {
   };
 }
 
+function mapDriverToEvent(docId: string, driverData: any): EventAPI {
+  const eventsField = driverData.events;
+  const ev =
+    Array.isArray(eventsField) && eventsField.length
+      ? eventsField[eventsField.length - 1]
+      : eventsField || driverData;
+
+  const mapped: FirestoreEvent = {
+    driverId: ev.driverId || driverData.driverId || docId,
+    status: ev.status || driverData.status || "",
+    heartRate: ev.heartRate ?? ev.heart_rate ?? driverData.heartRate,
+    bloodOxygenLevel:
+      ev.bloodOxygenLevel ??
+      ev.blood_oxygen_level ??
+      driverData.bloodOxygenLevel,
+    vehicleSpeed:
+      ev.vehicleSpeed ?? ev.vehicle_speed ?? driverData.vehicleSpeed,
+    date: ev.date || driverData.date || "",
+    timeStamp: ev.timeStamp || ev.time_stamp || driverData.timeStamp || "",
+    videoLink: ev.videoLink || ev.video_link || driverData.videoLink || "",
+  } as FirestoreEvent;
+
+  return mapEvent(docId, mapped);
+}
+
 router.get("/", async (req, res) => {
   try {
     const driverId = (req.query.driverId as string | undefined)?.trim();
@@ -37,12 +62,18 @@ router.get("/", async (req, res) => {
 
     const db = getFirestore();
 
+    if (driverId) {
+      const doc = await db.collection("drivers").doc(driverId).get();
+      if (!doc.exists) {
+        return res.json({ ok: true, data: [] });
+      }
+      const driverData = doc.data() || {};
+      const event = mapDriverToEvent(doc.id, driverData);
+      return res.json({ ok: true, data: [event] });
+    }
+
     const col = db.collection("events") as CollectionReference;
     let q: Query = col;
-
-    if (driverId) {
-      q = q.where("driverId", "==", driverId);
-    }
 
     const snap = await q.limit(200).get();
     const events = snap.docs.map((d) =>
@@ -62,9 +93,8 @@ router.get("/:id", async (req, res) => {
   try {
     const db = getFirestore();
     const doc = await db.collection("events").doc(req.params.id).get();
-    if (!doc.exists) {
+    if (!doc.exists)
       return res.status(404).json({ ok: false, error: "Not found" });
-    }
     return res.json({
       ok: true,
       data: mapEvent(doc.id, (doc.data() || {}) as FirestoreEvent),
@@ -86,7 +116,6 @@ router.get("/by/driver/:driverId", async (req, res) => {
 
     const db = getFirestore();
     const col = db.collection("events") as CollectionReference;
-
     let q: Query = col.where("driverId", "==", driverId);
 
     const snap = await q.get();

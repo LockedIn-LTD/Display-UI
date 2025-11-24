@@ -2,10 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { BrightnessProvider, useBrightness } from "./lib/brightness";
+import { SettingsProvider, useSettings } from "./lib/settings";
 
-const BrightnessShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { brightness } = useBrightness();
+const BrightnessShell: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { brightness } = useSettings();
 
   const value = Math.max(0, Math.min(brightness, 100));
   const overlayOpacity = ((100 - value) / 100) * 0.7;
@@ -36,10 +38,10 @@ const BrightnessShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <BrightnessProvider>
+    <SettingsProvider>
       <BrightnessShell>
         <App />
       </BrightnessShell>
-    </BrightnessProvider>
+    </SettingsProvider>
   </React.StrictMode>
 );

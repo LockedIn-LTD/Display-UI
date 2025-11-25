@@ -6,20 +6,23 @@
   "scripts": {
     "dev:frontend": "vite",
     "dev:backend": "cd server && npm run dev",
-    "dev": "concurrently -k -n FRONTEND,BACKEND -c blue,green \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:database": "cd database-api && npm run dev",
+    "dev": "concurrently -k -n FRONTEND,BACKEND,DATABASE -c blue,green,magenta \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:database\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "firebase": "^12.5.0",
     "firebase-admin": "^13.6.0",
+    "next": "^16.0.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "dotenv": "^17.2.3",
-    "next": "^16.0.1",
-    "twilio": "^5.10.4"
+    "twilio": "^5.10.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

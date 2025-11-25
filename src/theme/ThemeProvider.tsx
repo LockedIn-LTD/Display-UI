@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-// Import Context, Types from the new file
 import { ThemeCtx, type Theme, type Ctx } from "./theme-context";
 
 function getInitialTheme(): Theme {
@@ -8,7 +7,6 @@ function getInitialTheme(): Theme {
   return "light"; // default to light
 }
 
-// ThemeProvider is now the ONLY export (besides types/interfaces)
 export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 

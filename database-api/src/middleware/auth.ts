@@ -1,4 +1,3 @@
-// database-api/src/routes/auth.ts
 import { Router } from "express";
 import { getFirestore } from "../lib/firebase";
 import { FirestoreUser, UserAPI } from "../types";
@@ -7,14 +6,6 @@ import { signJwt } from "../lib/auth";
 
 const router = Router();
 
-/**
- * POST /api/auth/login
- * Body: { identifier: string; password: string }
- * identifier can be email OR username (users.name)
- * - trims input
- * - tries lookup by name THEN email (or email only if it looks like one)
- * - compares SHA-256(password) to Firestore users.password
- */
 router.post("/login", async (req, res) => {
   try {
     const raw = (req.body || {}) as { identifier?: string; password?: string };

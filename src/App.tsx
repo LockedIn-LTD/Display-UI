@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { useTheme } from "./theme/theme-context";
-import { SettingsProvider } from "./lib/settings";
-
 import LoginPage from "./pages/login/login";
 import DriverSelection from "./pages/driver-selection/driver-selection";
 import StatusProcessing from "./pages/status-processing/status-processing";
@@ -95,20 +93,18 @@ const App: React.FC = () => {
   }, [toast]);
 
   return (
-    <SettingsProvider>
-      <ThemeProvider>
-        <div className="viewport">
-          {toast && <div className="toast">{toast}</div>}
-          <Stage
-            screen={screen}
-            go={setScreen}
-            selectedDriver={selectedDriver}
-            setSelectedDriver={setSelectedDriver}
-            onLogout={handleLogout}
-          />
-        </div>
-      </ThemeProvider>
-    </SettingsProvider>
+    <ThemeProvider>
+      <div className="viewport">
+        {toast && <div className="toast">{toast}</div>}
+        <Stage
+          screen={screen}
+          go={setScreen}
+          selectedDriver={selectedDriver}
+          setSelectedDriver={setSelectedDriver}
+          onLogout={handleLogout}
+        />
+      </div>
+    </ThemeProvider>
   );
 };
 

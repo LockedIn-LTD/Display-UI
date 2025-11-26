@@ -2,6 +2,7 @@ export type DriverAPI = {
   id: string;
   fullName: string;
   avatarUrl?: string;
+  emergencyContact?: string;
 };
 
 export type FirestoreDriver = {
@@ -10,6 +11,10 @@ export type FirestoreDriver = {
   phone_number?: string;
   productId?: number;
   userId?: string | null;
+  emergency_contacts?: {
+    name?: string;
+    phone_number?: string;
+  }[];
 };
 
 export type UserAPI = {

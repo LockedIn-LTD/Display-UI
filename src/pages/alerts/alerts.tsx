@@ -35,7 +35,8 @@ export default function Alerts({
   simulate = false,
   onLogout,
   pollMs = 4000,
-  emergencyContact = "+1555678900", // Change with a real phone number 
+  emergencyContact = "+15555555555",
+  
 }: Props) {
   const [state, setState] = useState<DriverState>(initialState);
   const [callingPhase, setCallingPhase] = useState<CallingPhase>("idle");
@@ -53,7 +54,9 @@ export default function Alerts({
     };
   }, []);
 
-
+  // -------------------------
+  // FIXED CALLING FUNCTION
+  // -------------------------
   const startEmergencyCall = async () => {
     if (!emergencyContact) {
       setError("No emergency contact set. Please add one in settings.");
@@ -66,7 +69,9 @@ export default function Alerts({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     try {
-      const response = await fetch("/api/send-alert", {
+      const baseUrl = import.meta.env.VITE_API_URL || "";
+
+      const response = await fetch(`${baseUrl}/api/send-alert`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: emergencyContact }),
@@ -81,6 +86,7 @@ export default function Alerts({
       timeoutRef.current = setTimeout(() => {
         setCallingPhase("idle");
       }, 4500);
+
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to trigger emergency call";

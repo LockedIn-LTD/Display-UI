@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-export type Driver = { id: string; fullName: string; avatarUrl?: string };
+export type Driver = { id: string; fullName: string; avatarUrl?: string; emergencyContact?: string };
 export type User = { id: string; name: string; email: string; phoneNumber?: string };
 
 const ENV_BASE = (import.meta.env?.VITE_API_URL as string | undefined)?.toString().trim();

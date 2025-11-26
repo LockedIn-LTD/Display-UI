@@ -10,7 +10,7 @@ import Settings from "./pages/settings/settings";
 import "./App.css";
 
 type Screen = "login" | "drivers" | "processing" | "alerts" | "settings";
-type Driver = { id: string; fullName: string };
+type Driver = { id: string; fullName: string; emergencyContact?: string;};
 
 function Stage({
   screen,
@@ -67,6 +67,7 @@ function Stage({
           initialState="normal"
           simulate={false}
           onLogout={onLogout}
+          emergencyContact={selectedDriver?.emergencyContact}
         />
       )}
 

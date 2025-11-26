@@ -8,7 +8,8 @@ function toDriverAPI(id: string, raw: FirebaseFirestore.DocumentData): DriverAPI
   const d = (raw || {}) as FirestoreDriver;
   const fullName = d.name && d.name.trim() ? d.name.trim() : "Unknown Driver";
   const avatarUrl = d.profilePic && d.profilePic.trim() ? d.profilePic : undefined;
-  return { id, fullName, avatarUrl };
+  const emergencyContact = d.emergency_contacts?.[0]?.phone_number || undefined;
+  return { id, fullName, avatarUrl, emergencyContact };
 }
 
 router.get("/", async (_req, res) => {

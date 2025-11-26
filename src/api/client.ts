@@ -1,9 +1,22 @@
 /// <reference types="vite/client" />
 
-export type Driver = { id: string; fullName: string; avatarUrl?: string; emergencyContact?: string };
-export type User = { id: string; name: string; email: string; phoneNumber?: string };
+export type Driver = {
+  id: string;
+  fullName: string;
+  avatarUrl?: string;
+  emergencyContact?: string;
+};
 
-const ENV_BASE = (import.meta.env?.VITE_API_URL as string | undefined)?.toString().trim();
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber?: string;
+};
+
+const ENV_BASE = (import.meta.env?.VITE_API_URL as string | undefined)
+  ?.toString()
+  .trim();
 const BASE = (ENV_BASE && ENV_BASE.replace(/\/+$/, "")) || "http://localhost:4000";
 
 function authHeader(): Record<string, string> {
@@ -24,8 +37,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   let json: any = null;
   try {
     json = await res.json();
-  } catch {
-  }
+  } catch {}
 
   if (!res.ok || !json?.ok) {
     throw new Error(json?.error || `HTTP ${res.status} ${res.statusText}`);
@@ -33,9 +45,16 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return json.data as T;
 }
 
-// Drivers 
-export async function listDrivers(): Promise<Driver[]> {
-  return fetchJson<Driver[]>("/api/drivers", { method: "GET" });
+// Drivers
+export async function listDrivers(userId?: string): Promise<Driver[]> {
+  const search = new URLSearchParams();
+  if (userId) search.set("userId", userId);
+  const qs = search.toString();
+
+  return fetchJson<Driver[]>(
+    `/api/drivers${qs ? `?${qs}` : ""}`,
+    { method: "GET" }
+  );
 }
 
 // Auth
@@ -43,10 +62,13 @@ export async function login(
   identifier: string,
   password: string
 ): Promise<{ user: User; token: string }> {
-  const data = await fetchJson<{ token: string; user: User }>("/api/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ identifier: identifier.trim(), password }),
-  });
+  const data = await fetchJson<{ token: string; user: User }>(
+    "/api/auth/login",
+    {
+      method: "POST",
+      body: JSON.stringify({ identifier: identifier.trim(), password }),
+    }
+  );
   localStorage.setItem("ds_token", data.token);
   localStorage.setItem("ds_user", JSON.stringify(data.user));
   return data;
@@ -87,9 +109,15 @@ export async function listEvents(params?: {
   if (params?.driverId) search.set("driverId", params.driverId);
   if (params?.limit) search.set("limit", String(params.limit));
   const qs = search.toString();
-  return fetchJson<Event[]>(`/api/events${qs ? `?${qs}` : ""}`, { method: "GET" });
+  return fetchJson<Event[]>(
+    `/api/events${qs ? `?${qs}` : ""}`,
+    { method: "GET" }
+  );
 }
 
 export async function getEvent(id: string): Promise<Event> {
-  return fetchJson<Event>(`/api/events/${encodeURIComponent(id)}`, { method: "GET" });
+  return fetchJson<Event>(
+    `/api/events/${encodeURIComponent(id)}`,
+    { method: "GET" }
+  );
 }

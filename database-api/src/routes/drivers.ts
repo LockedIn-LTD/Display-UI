@@ -9,14 +9,24 @@ function toDriverAPI(id: string, raw: FirebaseFirestore.DocumentData): DriverAPI
   const fullName = d.name && d.name.trim() ? d.name.trim() : "Unknown Driver";
   const avatarUrl = d.profilePic && d.profilePic.trim() ? d.profilePic : undefined;
   const emergencyContact = d.emergency_contacts?.[0]?.phone_number || undefined;
+
   return { id, fullName, avatarUrl, emergencyContact };
 }
 
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const snap = await getFirestore().collection("drivers").get();
-    const drivers = snap.docs.map(doc => toDriverAPI(doc.id, doc.data()));
+    const userId = (req.query.userId as string | undefined) ?? undefined;
+
+    let query: FirebaseFirestore.Query = getFirestore().collection("drivers");
+    if (userId) {
+      // New: Only drivers that belong to this user
+      query = query.where("userId", "==", userId);
+    }
+
+    const snap = await query.get();
+    const drivers = snap.docs.map((doc) => toDriverAPI(doc.id, doc.data()));
     drivers.sort((a, b) => a.fullName.localeCompare(b.fullName));
+
     res.json({ ok: true, data: drivers });
   } catch (e) {
     console.error(e);
@@ -27,7 +37,9 @@ router.get("/", async (_req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const doc = await getFirestore().collection("drivers").doc(req.params.id).get();
-    if (!doc.exists) return res.status(404).json({ ok: false, error: "Driver not found" });
+    if (!doc.exists)
+      return res.status(404).json({ ok: false, error: "Driver not found" });
+
     res.json({ ok: true, data: toDriverAPI(doc.id, doc.data() || {}) });
   } catch (e) {
     console.error(e);

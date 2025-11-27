@@ -27,25 +27,15 @@ function mapEvent(docId: string, data: FirestoreEvent): EventAPI {
 }
 
 function mapDriverToEvent(docId: string, driverData: any): EventAPI {
-  const eventsField = driverData.events;
-  const ev =
-    Array.isArray(eventsField) && eventsField.length
-      ? eventsField[eventsField.length - 1]
-      : eventsField || driverData;
-
   const mapped: FirestoreEvent = {
-    driverId: ev.driverId || driverData.driverId || docId,
-    status: ev.status || driverData.status || "",
-    heartRate: ev.heartRate ?? ev.heart_rate ?? driverData.heartRate,
-    bloodOxygenLevel:
-      ev.bloodOxygenLevel ??
-      ev.blood_oxygen_level ??
-      driverData.bloodOxygenLevel,
-    vehicleSpeed:
-      ev.vehicleSpeed ?? ev.vehicle_speed ?? driverData.vehicleSpeed,
-    date: ev.date || driverData.date || "",
-    timeStamp: ev.timeStamp || ev.time_stamp || driverData.timeStamp || "",
-    videoLink: ev.videoLink || ev.video_link || driverData.videoLink || "",
+    driverId: driverData.driverId || docId,
+    status: driverData.status || "",
+    heartRate: driverData.heartRate,
+    bloodOxygenLevel: driverData.bloodOxygenLevel,
+    vehicleSpeed: driverData.vehicleSpeed,
+    date: driverData.date || "",
+    timeStamp: driverData.timeStamp || "",
+    videoLink: driverData.videoLink || "",
   } as FirestoreEvent;
 
   return mapEvent(docId, mapped);

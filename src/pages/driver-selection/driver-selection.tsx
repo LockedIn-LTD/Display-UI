@@ -3,7 +3,7 @@ import MoonToggle from "../../components/MoonToggle";
 import logoUrl from "../../assets/Drivesence-logo.png";
 import driverIconUrl from "../../assets/Driver-icon.png";
 import "./driver-selection.css";
-import { listDrivers, type Driver } from "../../api/client";
+import { listDrivers, type Driver, currentUser } from "../../api/client";
 
 type Props = { onSelect?: (driver: Driver) => void };
 
@@ -15,7 +15,9 @@ export default function DriverSelection({ onSelect }: Props) {
 
     (async () => {
       try {
-        const data = await listDrivers();
+        const user = currentUser();
+        const userId = user?.id; // each account has its own userId
+        const data = await listDrivers(userId); // backend will filter by userId
         if (!cancelled) setDrivers(data);
       } catch (err) {
         console.error("Failed to load drivers:", err);

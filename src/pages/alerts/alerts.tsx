@@ -54,9 +54,7 @@ export default function Alerts({
     };
   }, []);
 
-  // -------------------------
   // FIXED CALLING FUNCTION
-  // -------------------------
   const startEmergencyCall = async () => {
     if (!emergencyContact) {
       setError("No emergency contact set. Please add one in settings.");
@@ -190,7 +188,7 @@ export default function Alerts({
           src={logoUrl}
           alt="DriveSense"
           className="logo"
-          onClick={() => go("login")}
+          onClick={() => go("drivers")}
           style={{ cursor: "pointer" }}
         />
 
@@ -249,30 +247,17 @@ export default function Alerts({
   );
 }
 
+// Updated status from Drivers Table in the DB
 function eventToState(e: Event | null, fallback: DriverState): DriverState {
   if (!e) return fallback;
 
-  const s = (e.status || "").toLowerCase();
-  const hr = e.heartRate ?? 0;
-  const spo2 = e.bloodOxygenLevel ?? 100;
+  // Safely normalize status to a lower-case string
+  const s = (e.status ?? "").toString().toLowerCase().trim();
 
-  const isCritical =
-    s.includes("high") ||
-    s.includes("critical") ||
-    s.includes("severe") ||
-    spo2 < 90 ||
-    hr > 110;
+  if (s === "critical") return "critical"; 
+  if (s === "mild") return "drowsy";       
+  if (s === "stable") return "normal";     
 
-  if (isCritical) return "critical";
-
-  const isDrowsy =
-    s.includes("mild") ||
-    s.includes("warning") ||
-    s.includes("drowsy") ||
-    spo2 < 93 ||
-    hr > 95;
-
-  if (isDrowsy) return "drowsy";
-
+  // Any other value (null, empty, typo, etc.) → safe default
   return "normal";
 }
